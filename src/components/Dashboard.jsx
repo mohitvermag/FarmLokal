@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
 import { fetchUsers } from "../services/api";
 import { logoutUser, getLoggedInUser } from "../services/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./Dashboard.css";
 
 export default function Dashboard() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
     const [editingProductId, setEditingProductId] = useState(null);
     const [editedProduct, setEditedProduct] = useState({});
     const productsPerPage = 10;
+
     const navigate = useNavigate();
+    const { page } = useParams();
+    const currentPage = Number(page) || 1;
 
     useEffect(() => {
         const user = getLoggedInUser();
@@ -20,12 +22,11 @@ export default function Dashboard() {
             navigate("/login");
         } else {
             fetchUsers().then((data) => {
-                console.log(data)
                 setProducts(data);
                 setLoading(false);
             });
         }
-    }, [navigate]);
+    }, []);
 
     const handleLogout = () => {
         logoutUser();
@@ -46,7 +47,7 @@ export default function Dashboard() {
     const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
     const goToPage = (pageNumber) => {
-        setCurrentPage(pageNumber);
+        navigate(`/dashboard/${pageNumber}`);
         window.scrollTo(0, 0);
     };
 
@@ -70,7 +71,6 @@ export default function Dashboard() {
 
     if (loading) return <p className="loading-text">Loading...</p>;
 
-
     return (
         <div className="dashboard-container">
             <h1 className="dashboard-title">Product Dashboard</h1>
@@ -85,7 +85,7 @@ export default function Dashboard() {
                 value={searchTerm}
                 onChange={(e) => {
                     setSearchTerm(e.target.value);
-                    setCurrentPage(1);
+                    goToPage(1);
                 }}
                 className="search-input"
                 style={{ marginBottom: "20px", padding: "8px", width: "250px" }}
